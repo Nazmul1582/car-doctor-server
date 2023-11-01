@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 var jwt = require('jsonwebtoken');
+const cookieParser = require("cookie-parser")
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
@@ -12,6 +13,7 @@ app.use(cors({
   credentials: true
 }))
 app.use(express.json())
+app.use(cookieParser())
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.vatgn7i.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -73,6 +75,7 @@ async function run() {
     // bookings
     
     app.get("/bookings", async(req, res) => {
+      console.log("token", req.cookies.token)
       let query = {}
       if(req.query?.email){
         query = {email: req.query.email}
