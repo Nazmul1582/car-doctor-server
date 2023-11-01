@@ -41,6 +41,17 @@ async function run() {
       res.send(result)
     })
 
+    // get some property of a specific service
+    app.get('/services/checkout/:id', async(req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const options = {
+        projection: { img: 1, title: 1, price: 1}
+      };
+      const result = await serviceCollection.findOne(filter, options);
+      res.send(result)
+    })
+
     // bookings
     
     app.get("/bookings", async(req, res) => {
