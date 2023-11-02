@@ -21,6 +21,25 @@ const logger = (req, res, next) => {
   next();
 }
 
+const varifyToken = (req, res, next) => {
+  const token = req.cookies?.token;
+  console.log("value of the token in middleware: ", token);
+  if(!token){
+    return res.status(401).send({message: "unauthorized!"})
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if(err){
+      console.log(err);
+      return res.status(401).send({message: "unauthorized!"})
+    }
+
+    // if token is valid then it would be decoded
+    console.log("value in the token: ", decoded)
+    req.user = decoded;
+    next();
+  })
+}
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.vatgn7i.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -79,8 +98,13 @@ async function run() {
 
     // bookings
     
-    app.get("/bookings", logger, async(req, res) => {
-      console.log("token", req.cookies.token)
+    app.get("/bookings", logger, varifyToken, async(req, res) => {
+      // console.log("token", req.cookies.token)
+      console.log("user in the valid token: ", req.user);
+      if(req.query.email !== req.user.email){
+        return res.status(403).send({message: "forbidden access"})
+      }
+      
       let query = {}
       if(req.query?.email){
         query = {email: req.query.email}
