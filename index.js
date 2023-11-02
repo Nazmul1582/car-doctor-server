@@ -15,6 +15,12 @@ app.use(cors({
 app.use(express.json())
 app.use(cookieParser())
 
+// custom middlewate 
+const logger = (req, res, next) => {
+  console.log("called: ", req.host, req.originalUrl);
+  next();
+}
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.vatgn7i.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -37,18 +43,17 @@ async function run() {
     // auth related api
     app.post("/jwt", async(req, res) => {
       const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRETE, {expiresIn: "1h"})
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: "1h"})
       res
       .cookie('token', token, {
         httpOnly: true,
         secure: false, // http://localhost:5173
-        sameSite: 'none'
       })
       .send({success: true})
     })
 
     // services related api
-    app.get("/services", async(req, res) => {
+    app.get("/services", logger, async(req, res) => {
         const cursor = serviceCollection.find();
         const result = await cursor.toArray();
         res.send(result);
@@ -74,7 +79,7 @@ async function run() {
 
     // bookings
     
-    app.get("/bookings", async(req, res) => {
+    app.get("/bookings", logger, async(req, res) => {
       console.log("token", req.cookies.token)
       let query = {}
       if(req.query?.email){
