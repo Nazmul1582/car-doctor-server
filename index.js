@@ -34,7 +34,6 @@ const varifyToken = (req, res, next) => {
     }
 
     // if token is valid then it would be decoded
-    console.log("value in the token: ", decoded)
     req.user = decoded;
     next();
   })
@@ -69,6 +68,12 @@ async function run() {
         secure: false, // http://localhost:5173
       })
       .send({success: true})
+    })
+
+    app.post("/logout", async(req, res) => {
+      const user = req.body;
+      console.log("logout user", user);
+      res.clearCookie('token', {maxAge: 0}).send({success: true})
     })
 
     // services related api
